@@ -19,6 +19,15 @@ body {
         #ff00002a 3px 2px 3px;
 }
 
+.amber-low {
+    color: #ffc252d9;
+    filter: blur(0.018rem);
+    text-shadow: #ffb1152b 1px 0px 2px,
+        #ffb1153d 0px 0px 20px,
+        #0d00ff33 -3px 0px 1px,
+        #ff00001e 3px 2px 3px;
+}
+
 .hud {
     display: inline-flex;
 }
@@ -30,4 +39,8 @@ body {
 #health {
     color: rgb(255, 107, 53);
     letter-spacing: 0.1rem;
+}
+
+#cash{
+    color:#b6ff56;
 }

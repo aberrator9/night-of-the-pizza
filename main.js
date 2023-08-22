@@ -5,6 +5,7 @@ const streetChar = '▒';
 const smallDogChar = 'd';
 const emptyChar = '░';
 const houseChar = 'H';
+const cashChar = '$';
 let house = [];
 let numHouses = between(5, 10);
 
@@ -50,14 +51,14 @@ class cash {
         return amt;
     }
 
-    static placeCash() {
+    static init() {
         for (let c = 0; c < 4; ++c) {
-
+            // replaceCoordinate(grid, grid.withinY, grid.withinX, cashChar);
         }
     }
 }
 
-cash.placeCash();
+cash.init();
 
 // Player initialization and movement
 addEventListener('keydown', function (event) {
@@ -82,8 +83,8 @@ class Player {
         this.y = startY;
         this.health = 100;
 
-        replaceCoordinate(grid, startY, startX, playerChar);
-        refreshDisplay();
+        updateViewAtCoord(grid, startY, startX, playerChar);
+        updateDisplay();
     }
 
     move(y, x) {
@@ -92,24 +93,24 @@ class Player {
             return;
         }
 
-        replaceCoordinate(grid, this.y, this.x, emptyChar);
+        updateViewAtCoord(grid, this.y, this.x, emptyChar);
 
         this.y += y;
         this.x += x;
 
-        replaceCoordinate(grid, this.y, this.x, playerChar);
-        refreshDisplay();
+        updateViewAtCoord(grid, this.y, this.x, playerChar);
+        updateDisplay();
     }
 }
 
 const player = new Player(between(1, grid.length - 2), between(1, grid[0].length - 2))
 
 // Display
-function replaceCoordinate(grid, y, x, newChar) {
+function updateViewAtCoord(grid, y, x, newChar) {
     grid[y][x] = newChar;
 }
 
-function refreshDisplay() {
+function updateDisplay() {
     const mapContent = grid.map(row => row.join('')).join('\n');
     mapArea.innerHTML = mapContent;
 }
