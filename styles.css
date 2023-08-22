@@ -14,7 +14,7 @@ body {
     color: #ffc115;
     filter: blur(0.022rem);
     text-shadow: #ffb115b2 1px 0px 2px,
-    #ffb11548 0px 0px 20px,
+        #ffb11548 0px 0px 20px,
         #0d00ff3e -3px 0px 1px,
         #ff00002a 3px 2px 3px;
 }
@@ -41,6 +41,11 @@ body {
     letter-spacing: 0.1rem;
 }
 
-#cash{
-    color:#b6ff56;
+#cash {
+    color: #b6ff56;
+}
+
+#vibes {
+    color: rgb(162, 101, 231);
+    letter-spacing: 0.1rem;
 }

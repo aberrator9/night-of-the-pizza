@@ -63,16 +63,12 @@ cash.init();
 // Player initialization and movement
 addEventListener('keydown', function (event) {
     if (event.key === 'ArrowUp' || event.key === 'w') {
-        console.log('Up was pressed');
         player.move(-1, 0);
     } else if (event.key === 'ArrowRight' || event.key === 'd') {
-        console.log('Right was pressed');
         player.move(0, 1);
     } else if (event.key === 'ArrowDown' || event.key === 's') {
-        console.log('Down was pressed');
         player.move(1, 0);
     } else if (event.key === 'ArrowLeft' || event.key === 'a') {
-        console.log('Left was pressed');
         player.move(0, -1);
     }
 });
