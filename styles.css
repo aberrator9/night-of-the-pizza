@@ -12,20 +12,22 @@ body {
 
 .amber {
     color: #ffc115;
-    filter: blur(0.02rem);
-    text-shadow: #ffc115a2 3px 3px 50px;
-    /* linear-gradient(blue, red) 1px, 1px, 20%; */
+    filter: blur(0.022rem);
+    text-shadow: #ffb115b2 1px 0px 2px,
+    #ffb11548 0px 0px 20px,
+        #0d00ff3e -3px 0px 1px,
+        #ff00002a 3px 2px 3px;
 }
 
-.hud{
+.hud {
     display: inline-flex;
 }
 
-.hud-item{
-margin:0 2rem;
+.hud-item {
+    margin: 0 2rem;
 }
 
-#health{
+#health {
     color: rgb(255, 107, 53);
     letter-spacing: 0.1rem;
 }

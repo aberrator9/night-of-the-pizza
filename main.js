@@ -38,6 +38,26 @@ function createGrid(rows, cols) {
 
 grid = createGrid(between(10, 25), between(20, 50));
 
+// Cash
+class cash {
+    constructor(y, x, amt) {
+        this.y = y;
+        this.x = x;
+        this.amt = amt;
+    }
+
+    collect() {
+        return amt;
+    }
+
+    static placeCash() {
+        for (let c = 0; c < 4; ++c) {
+
+        }
+    }
+}
+
+cash.placeCash();
 
 // Player initialization and movement
 addEventListener('keydown', function (event) {
