@@ -77,6 +77,7 @@ class Player {
         this.y += y;
         this.x += x;
 
+        replaceCoordinate(grid, this.y, this.x, playerChar);
         refreshDisplay();
     }
 }

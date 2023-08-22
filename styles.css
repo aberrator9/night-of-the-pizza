@@ -9,3 +9,10 @@ body {
     color: rgb(173, 144, 109);
     background: rgb(37, 30, 26);
 }
+
+.amber {
+    color: #ffc115;
+    filter: blur(0.02rem);
+    text-shadow: #ffc115a2 3px 3px 50px;
+    /* linear-gradient(blue, red) 1px, 1px, 20%; */
+}
