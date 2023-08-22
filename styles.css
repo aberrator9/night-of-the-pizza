@@ -16,3 +16,16 @@ body {
     text-shadow: #ffc115a2 3px 3px 50px;
     /* linear-gradient(blue, red) 1px, 1px, 20%; */
 }
+
+.hud{
+    display: inline-flex;
+}
+
+.hud-item{
+margin:0 2rem;
+}
+
+#health{
+    color: rgb(255, 107, 53);
+    letter-spacing: 0.1rem;
+}
