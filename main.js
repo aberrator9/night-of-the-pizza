@@ -1,4 +1,8 @@
 const mapArea = document.querySelector('.map-area');
+const healthDisplay = document.getElementById('health');
+const cashDisplay = document.getElementById('cash');
+const vibesDisplay = document.getElementById('vibes');
+
 const playerChar = 'P';
 const wallChar = '█';
 const streetChar = '▒';
@@ -14,14 +18,35 @@ function between(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function randomCoords(height, width) {
-    return [Math.floor(Math.random() * height), Math.floor(Math.random() * width)];
+function randomCoords(grid) {
+    return [Math.floor(Math.random() * grid.length - 1), Math.floor(Math.random() * grid[0].length - 2)];
 }
 
 // Grid generation
-let grid = [];
+function updateViewAtCoord(grid, [y, x], newChar) {
+    grid[y][x] = newChar;
+}
 
-function createGrid(rows, cols) {
+let dataGrid = [];
+let viewGrid = [];
+
+function createDataGrid(rows, cols) {
+    const grid = [];
+    for (let y = 0; y < rows; y++) {
+        const row = [];
+        for (let x = 0; x < cols; x++) {
+            if (y > 0 && y < rows - 1 && x > 0 && x < cols - 1) {
+                row.push(undefined);
+            } else {
+                row.push(undefined);
+            }
+        }
+        grid.push(row);
+    }
+    return grid;
+}
+
+function createViewGrid(rows, cols) {
     const grid = [];
     for (let y = 0; y < rows; y++) {
         const row = [];
@@ -37,28 +62,8 @@ function createGrid(rows, cols) {
     return grid;
 }
 
-grid = createGrid(between(10, 25), between(20, 50));
-
-// Cash
-class cash {
-    constructor(y, x, amt) {
-        this.y = y;
-        this.x = x;
-        this.amt = amt;
-    }
-
-    collect() {
-        return amt;
-    }
-
-    static init() {
-        for (let c = 0; c < 4; ++c) {
-            // replaceCoordinate(grid, grid.withinY, grid.withinX, cashChar);
-        }
-    }
-}
-
-cash.init();
+dataGrid = createDataGrid(between(10, 25), between(20, 50));
+viewGrid = createViewGrid(dataGrid.length, dataGrid[0].length);
 
 // Player initialization and movement
 addEventListener('keydown', function (event) {
@@ -74,39 +79,66 @@ addEventListener('keydown', function (event) {
 });
 
 class Player {
-    constructor(startY, startX, health) {
+    constructor(startY, startX, health, cash, vibes) {
         this.x = startX;
         this.y = startY;
-        this.health = 100;
+        this.health = health;
+        this.cash = cash;
+        this.vibes = vibes;
 
-        updateViewAtCoord(grid, startY, startX, playerChar);
+        updateViewAtCoord(viewGrid, [startY, startX], playerChar);
         updateDisplay();
     }
 
     move(y, x) {
-        if (this.y + y < 0 || this.y + y >= grid.length ||
-            this.x + x < 0 || this.x + x >= grid[0].length) {
+        if (this.y + y < 0 || this.y + y >= viewGrid.length ||
+            this.x + x < 0 || this.x + x >= viewGrid[0].length) {
             return;
         }
 
-        updateViewAtCoord(grid, this.y, this.x, emptyChar);
+        updateViewAtCoord(viewGrid, [this.y, this.x], emptyChar);
 
         this.y += y;
         this.x += x;
 
-        updateViewAtCoord(grid, this.y, this.x, playerChar);
+        updateViewAtCoord(viewGrid, [this.y, this.x], playerChar);
         updateDisplay();
     }
 }
 
-const player = new Player(between(1, grid.length - 2), between(1, grid[0].length - 2))
+const player = new Player(between(1, viewGrid.length - 2), between(1, viewGrid[0].length - 2), 10, 73.57, 10);
+
+// Cash
+class Cash {
+    constructor(y, x, amt) {
+        this.y = y;
+        this.x = x;
+        this.amt = amt;
+    }
+
+    collect() {
+        return amt;
+    }
+
+    static init() {
+        for (let c = 0; c < 4; ++c) {
+            const randYX = randomCoords(dataGrid);
+            // dataGrid[randYX.y].splice(randYX.x, 0, new Cash(randYX.y, randYX.x, 1));
+            updateViewAtCoord(viewGrid, randYX, cashChar);
+        }
+    }
+}
+
+Cash.init();
+updateDisplay();
+cashDisplay.textContent = player.cash;
 
 // Display
-function updateViewAtCoord(grid, y, x, newChar) {
+function updateViewAtCoord(grid, [y, x], newChar) {
     grid[y][x] = newChar;
 }
 
 function updateDisplay() {
-    const mapContent = grid.map(row => row.join('')).join('\n');
-    mapArea.innerHTML = mapContent;
+    const mapContent = viewGrid.map(row => row.join('')).join('\n');
+    mapArea.textContent = mapContent;
 }
