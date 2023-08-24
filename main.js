@@ -122,14 +122,15 @@ class Player {
             return;
         }
 
-        updateViewGridAtCoord(viewGrid, [this.y, this.x], chars['empty']);
+        const cellVal = dataGrid[this.y + y][this.x + x];
+        if (cellVal === CELLS.WALL) {
+            return;
+        }
 
+        updateViewGridAtCoord(viewGrid, [this.y, this.x], chars['empty']);
 
         this.y += y;
         this.x += x;
-        // console.log(this.y, this.x);
-
-        const cellVal = dataGrid[this.y][this.x];
 
         if (cellVal === CELLS.EMPTY) {
             console.log("EMPTY")
@@ -138,14 +139,10 @@ class Player {
             this.cash += Cash.random();
 
             updateDataAtCoord(dataGrid, [this.y, this.x], CELLS.EMPTY);
-        } else if (cellVal === CELLS.WALL) {
-            console.log("wall");
         } else if (cellVal === CELLS.HEALTH) {
             player.health = Math.min(Math.max(--player.health, 0), 10);
-            console.log(player.health);
         } else if (cellVal === CELLS.VIBES) {
             player.vibes = Math.min(Math.max(--player.vibes, 0), 10);
-            console.log(player.vibes);
         }
 
         updateViewGridAtCoord(viewGrid, [this.y, this.x], chars['player']);
