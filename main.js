@@ -6,7 +6,7 @@ const vibesDisplay = document.getElementById('vibes');
 const chars = {
     'player': 'P', 'wall': '█', 'street': '▒', 'empty': '░', 'dogSmall': 'd', 'dogBig': 'D',
     'house': 'H', 'cash': '$', 'vibesUp': '^', 'vibesDown': 'v', 'healthUp': '+', 'healthDown': 'x',
-    'meter': '&#9632'
+    'meter': '⯀', 'meterEmpty': '⬚'
 };
 
 // Helpers
@@ -19,7 +19,7 @@ function betweenCash(min, max) {
 }
 
 function randomCoords(grid) {
-    return [Math.floor(Math.random() * grid.length - 1), Math.floor(Math.random() * grid[0].length - 2)];
+    return [Math.floor(Math.random() * grid.length), Math.floor(Math.random() * grid[0].length)];
 }
 
 // Grid generation
@@ -31,7 +31,6 @@ const CELLS = {
     VIBES: 4
 };
 
-let dataGrid = [];
 function createDataGrid(rows, cols) {
     const grid = [];
     for (let y = 0; y < rows; y++) {
@@ -53,8 +52,6 @@ function updateDataAtCoord(grid, [y, x], newType) {
     grid[y][x] = newType;
 }
 
-dataGrid = createDataGrid(between(10, 25), between(20, 50));
-
 // Cash
 class Cash {
     constructor(y, x, amt) {
@@ -66,29 +63,25 @@ class Cash {
     static random() {
         return between(1, 20) + +(between(0, 100) / 100);
     }
+}
 
-    static init() {
-        for (let c = 0; c < 4; ++c) {
-            const randYX = randomCoords(dataGrid);
-            updateDataAtCoord(dataGrid, randYX, CELLS.CASH);
-        }
+function seedMap() {
+    // Testing
+    for (let c = 0; c < 4; ++c) {
+        const randYX = randomCoords(dataGrid);
+        updateDataAtCoord(dataGrid, randYX, CELLS.CASH);
     }
-}
-Cash.init();
-
-// Testing
-for (let c = 0; c < 8; ++c) {
-    const randYX = randomCoords(dataGrid);
-    updateDataAtCoord(dataGrid, randYX, CELLS.HEALTH);
-}
-for (let c = 0; c < 8; ++c) {
-    const randYX = randomCoords(dataGrid);
-    updateDataAtCoord(dataGrid, randYX, CELLS.VIBES);
+    for (let c = 0; c < 8; ++c) {
+        const randYX = randomCoords(dataGrid);
+        updateDataAtCoord(dataGrid, randYX, CELLS.HEALTH);
+    }
+    for (let c = 0; c < 8; ++c) {
+        const randYX = randomCoords(dataGrid);
+        updateDataAtCoord(dataGrid, randYX, CELLS.VIBES);
+    }
 }
 
 // View generation
-let viewGrid = [];
-
 function createViewGridFromDataGrid(dataGrid) {
     const grid = [];
     for (let y = 0; y < dataGrid.length; y++) {
@@ -111,7 +104,6 @@ function createViewGridFromDataGrid(dataGrid) {
     return grid;
 }
 
-viewGrid = createViewGridFromDataGrid(dataGrid);
 
 // Player initialization and movement
 class Player {
@@ -159,8 +151,6 @@ class Player {
     }
 }
 
-const player = new Player(between(1, viewGrid.length - 2), between(1, viewGrid[0].length - 2), 10, 73.57, 10);
-
 addEventListener('keydown', function (event) {
     if (event.key === 'ArrowUp' || event.key === 'w') {
         player.move(-1, 0);
@@ -173,7 +163,6 @@ addEventListener('keydown', function (event) {
     }
 });
 
-refreshView();
 
 // View
 function updateViewAtCoord(grid, [y, x], newChar) {
@@ -184,6 +173,19 @@ function refreshView() {
     const mapContent = viewGrid.map(row => row.join('')).join('\n');
     mapArea.textContent = mapContent;
     cashDisplay.textContent = player.cash > 0 ? player.cash : 'broke';
-    healthDisplay.textContent = player.health > 0 ? chars['meter'].repeat(player.health) : 'dead';
-    vibesDisplay.textContent = player.vibes > 0 ? chars['meter'].repeat(player.vibes) : 'sad';
+    healthDisplay.textContent = player.health > 0 ? chars['meter'].repeat(player.health) + chars['meterEmpty'].repeat(10 - player.health) : 'dead';
+    vibesDisplay.textContent = player.vibes > 0 ? chars['meter'].repeat(player.vibes) + chars['meterEmpty'].repeat(10 - player.vibes) : 'sad';
 }
+
+
+
+let dataGrid = [];
+dataGrid = createDataGrid(between(10, 25), between(20, 50));
+
+seedMap();
+
+let viewGrid = [];
+viewGrid = createViewGridFromDataGrid(dataGrid);
+
+const player = new Player(between(1, viewGrid.length - 2), between(1, viewGrid[0].length - 2), 10, 73.57, 10);
+refreshView();
