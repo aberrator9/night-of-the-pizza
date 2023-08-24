@@ -67,15 +67,15 @@ class Cash {
 
 function seedMap() {
     // Testing
-    for (let c = 0; c < 4; ++c) {
+    for (let c = 0; c < 1; ++c) {
         const randYX = randomCoords(dataGrid);
         updateDataAtCoord(dataGrid, randYX, CELLS.CASH);
     }
-    for (let c = 0; c < 8; ++c) {
+    for (let c = 0; c < 22; ++c) {
         const randYX = randomCoords(dataGrid);
         updateDataAtCoord(dataGrid, randYX, CELLS.HEALTH);
     }
-    for (let c = 0; c < 8; ++c) {
+    for (let c = 0; c < 22; ++c) {
         const randYX = randomCoords(dataGrid);
         updateDataAtCoord(dataGrid, randYX, CELLS.VIBES);
     }
@@ -104,8 +104,7 @@ function createViewGridFromDataGrid(dataGrid) {
     return grid;
 }
 
-
-// Player initialization and movement
+// Player
 class Player {
     constructor(startY, startX, health, cash, vibes) {
         this.x = startX;
@@ -114,7 +113,7 @@ class Player {
         this.cash = cash;
         this.vibes = vibes;
 
-        updateViewAtCoord(viewGrid, [startY, startX], chars['player']);
+        updateViewGridAtCoord(viewGrid, [startY, startX], chars['player']);
     }
 
     move(y, x) {
@@ -123,7 +122,8 @@ class Player {
             return;
         }
 
-        updateViewAtCoord(viewGrid, [this.y, this.x], chars['empty']);
+        updateViewGridAtCoord(viewGrid, [this.y, this.x], chars['empty']);
+
 
         this.y += y;
         this.x += x;
@@ -141,12 +141,14 @@ class Player {
         } else if (cellVal === CELLS.WALL) {
             console.log("wall");
         } else if (cellVal === CELLS.HEALTH) {
-            Math.min(Math.max(player.health--, 10), 0);
+            player.health = Math.min(Math.max(--player.health, 0), 10);
+            console.log(player.health);
         } else if (cellVal === CELLS.VIBES) {
-            Math.min(Math.max(player.vibes--, 10), 0);;
+            player.vibes = Math.min(Math.max(--player.vibes, 0), 10);
+            console.log(player.vibes);
         }
 
-        updateViewAtCoord(viewGrid, [this.y, this.x], chars['player']);
+        updateViewGridAtCoord(viewGrid, [this.y, this.x], chars['player']);
         refreshView();
     }
 }
@@ -163,9 +165,8 @@ addEventListener('keydown', function (event) {
     }
 });
 
-
 // View
-function updateViewAtCoord(grid, [y, x], newChar) {
+function updateViewGridAtCoord(grid, [y, x], newChar) {
     grid[y][x] = newChar;
 }
 
@@ -177,8 +178,7 @@ function refreshView() {
     vibesDisplay.textContent = player.vibes > 0 ? chars['meter'].repeat(player.vibes) + chars['meterEmpty'].repeat(10 - player.vibes) : 'sad';
 }
 
-
-
+// Initialization
 let dataGrid = [];
 dataGrid = createDataGrid(between(10, 25), between(20, 50));
 
