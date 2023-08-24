@@ -3,15 +3,10 @@ const healthDisplay = document.getElementById('health');
 const cashDisplay = document.getElementById('cash');
 const vibesDisplay = document.getElementById('vibes');
 
-const playerChar = 'P';
-const wallChar = '█';
-const streetChar = '▒';
-const smallDogChar = 'd';
-const emptyChar = '░';
-const houseChar = 'H';
-const cashChar = '$';
-let house = [];
-let numHouses = between(5, 10);
+const charDict = {
+    'player': 'P', 'wall': '█', 'street': '▒', 'empty': '░', 'dogSmall': 'd', 'dogBig': 'D',
+    'house': 'H', 'cash': '$', 'vibesUp': '^', 'vibesDown': 'v', 'healthUp': '+', 'healthDown': 'x'
+};
 
 // Helpers
 function between(min, max) {
@@ -66,7 +61,7 @@ class Cash {
     }
 
     static random() {
-        return betweenCash(1, 20);
+        return between(1, 20) + +(between(0, 100) / 100);
     }
 
     static init() {
@@ -87,11 +82,11 @@ function createViewGridFromDataGrid(dataGrid) {
         const row = [];
         for (let x = 0; x < dataGrid[y].length; x++) {
             if (dataGrid[y][x] === CELLS.EMPTY) {
-                row.push(emptyChar);
+                row.push(charDict['empty']);
             } else if (dataGrid[y][x] === CELLS.WALL) {
-                row.push(wallChar);
+                row.push(charDict['wall']);
             } else if (dataGrid[y][x] === CELLS.CASH) {
-                row.push(cashChar);
+                row.push(charDict['cash']);
             }
         }
         grid.push(row);
@@ -110,7 +105,7 @@ class Player {
         this.cash = cash;
         this.vibes = vibes;
 
-        updateViewAtCoord(viewGrid, [startY, startX], playerChar);
+        updateViewAtCoord(viewGrid, [startY, startX], charDict['player']);
     }
 
     move(y, x) {
@@ -119,7 +114,7 @@ class Player {
             return;
         }
 
-        updateViewAtCoord(viewGrid, [this.y, this.x], emptyChar);
+        updateViewAtCoord(viewGrid, [this.y, this.x], charDict['empty']);
 
         this.y += y;
         this.x += x;
@@ -141,13 +136,12 @@ class Player {
             console.log("wall");
         }
 
-        updateViewAtCoord(viewGrid, [this.y, this.x], playerChar);
+        updateViewAtCoord(viewGrid, [this.y, this.x], charDict['player']);
         refreshView();
     }
 }
 
 const player = new Player(between(1, viewGrid.length - 2), between(1, viewGrid[0].length - 2), 10, 73.57, 10);
-cashDisplay.textContent = player.cash;
 
 addEventListener('keydown', function (event) {
     if (event.key === 'ArrowUp' || event.key === 'w') {
