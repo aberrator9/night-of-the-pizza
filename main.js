@@ -18,6 +18,10 @@ function between(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function betweenCash(min, max) {
+    return +(Math.random() * (max - min + 1) + min).toFixed(2);
+}
+
 function randomCoords(grid) {
     return [Math.floor(Math.random() * grid.length - 1), Math.floor(Math.random() * grid[0].length - 2)];
 }
@@ -29,7 +33,7 @@ const CELLS = {
     CASH: 2
 };
 
-let dataGrid = [[]];
+let dataGrid = [];
 function createDataGrid(rows, cols) {
     const grid = [];
     for (let y = 0; y < rows; y++) {
@@ -47,11 +51,11 @@ function createDataGrid(rows, cols) {
     return grid;
 }
 
-function updateDataGridAtCoord(grid, [y, x], newType) {
+function updateDataAtCoord(grid, [y, x], newType) {
     grid[y][x] = newType;
 }
-dataGrid = createDataGrid(between(10, 25), between(20, 50));
 
+dataGrid = createDataGrid(between(10, 25), between(20, 50));
 
 // Cash
 class Cash {
@@ -61,14 +65,14 @@ class Cash {
         this.amt = amt;
     }
 
-    collect() {
-        return amt;
+    static random() {
+        return betweenCash(1, 20);
     }
 
     static init() {
         for (let c = 0; c < 4; ++c) {
             const randYX = randomCoords(dataGrid);
-            updateDataGridAtCoord(dataGrid, randYX, CELLS.CASH);
+            updateDataAtCoord(dataGrid, randYX, CELLS.CASH);
         }
     }
 }
@@ -98,18 +102,6 @@ function createViewGridFromDataGrid(dataGrid) {
 viewGrid = createViewGridFromDataGrid(dataGrid);
 
 // Player initialization and movement
-addEventListener('keydown', function (event) {
-    if (event.key === 'ArrowUp' || event.key === 'w') {
-        player.move(-1, 0);
-    } else if (event.key === 'ArrowRight' || event.key === 'd') {
-        player.move(0, 1);
-    } else if (event.key === 'ArrowDown' || event.key === 's') {
-        player.move(1, 0);
-    } else if (event.key === 'ArrowLeft' || event.key === 'a') {
-        player.move(0, -1);
-    }
-});
-
 class Player {
     constructor(startY, startX, health, cash, vibes) {
         this.x = startX;
@@ -119,7 +111,6 @@ class Player {
         this.vibes = vibes;
 
         updateViewAtCoord(viewGrid, [startY, startX], playerChar);
-        updateView();
     }
 
     move(y, x) {
@@ -132,23 +123,53 @@ class Player {
 
         this.y += y;
         this.x += x;
+        // console.log(this.y, this.x);
+
+        const cellVal = dataGrid[this.y][this.x];
+        console.log(cellVal);
+
+        if (cellVal === CELLS.EMPTY) {
+            console.log("EMPTY")
+        }
+        if (cellVal === CELLS.CASH) {
+            console.log("CASH");
+            this.cash += Cash.random();
+
+            updateDataAtCoord(dataGrid, [this.y, this.x], CELLS.EMPTY);
+        }
+        if (cellVal === CELLS.WALL) {
+            console.log("wall");
+        }
 
         updateViewAtCoord(viewGrid, [this.y, this.x], playerChar);
-        updateView();
+        refreshView();
     }
 }
 
 const player = new Player(between(1, viewGrid.length - 2), between(1, viewGrid[0].length - 2), 10, 73.57, 10);
-
-// Initialization
 cashDisplay.textContent = player.cash;
+
+addEventListener('keydown', function (event) {
+    if (event.key === 'ArrowUp' || event.key === 'w') {
+        player.move(-1, 0);
+    } else if (event.key === 'ArrowRight' || event.key === 'd') {
+        player.move(0, 1);
+    } else if (event.key === 'ArrowDown' || event.key === 's') {
+        player.move(1, 0);
+    } else if (event.key === 'ArrowLeft' || event.key === 'a') {
+        player.move(0, -1);
+    }
+});
+
+refreshView();
 
 // View
 function updateViewAtCoord(grid, [y, x], newChar) {
     grid[y][x] = newChar;
 }
 
-function updateView() {
+function refreshView() {
     const mapContent = viewGrid.map(row => row.join('')).join('\n');
     mapArea.textContent = mapContent;
+    cashDisplay.textContent = player.cash;
 }
