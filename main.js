@@ -12,7 +12,7 @@ const chars = {
 
 // Helpers
 function between(min, max) {
-    return Math.floor(Math.random() * (max - min) + min);
+    return Math.max(0, Math.floor(Math.random() * (max - min) + min));
 }
 
 function betweenFloat(min, max) {
@@ -57,6 +57,7 @@ function createDataGrid(rows, cols) {
 }
 
 function updateDataAtCoord(grid, [y, x], newType) {
+    console.log('updateData y, x ' + y + ' ' + x);
     grid[y][x] = newType;
 }
 
@@ -70,21 +71,20 @@ class Entity {
 
 function seedMap() {
     const streetDensity = 0.2;
-    const numStreets = Math.floor(Math.min(dataGrid.length, dataGrid[0].length) * streetDensity);
+    // const numStreets = Math.floor(Math.min(dataGrid.length, dataGrid[0].length) * streetDensity);
+    const numStreets = 2;
     console.log("Number of streets: " + numStreets);
 
     // Streets
-    let vert = true;
-    for (let s = 0; s < numStreets * 2; ++s) {
-        let randPos = vert === true ? between(0, dataGrid.length) : between(0, dataGrid[0].length);
-        for (let i = 0; i < (vert === true ? dataGrid.length : dataGrid[0].length); ++i) {
-            if (vert) {
-                updateDataAtCoord(dataGrid, [i, randPos], CELLS.STREET);
-            } else {
-                updateDataAtCoord(dataGrid, [randPos, i], CELLS.STREET);
-            }
+    for (let s = 0; s < numStreets; ++s) {
+        let randPos = between(0, dataGrid[0].length);
+        for (let i = 0; i < dataGrid.length; ++i) {
+            updateDataAtCoord(dataGrid, [i, randPos], CELLS.STREET);
         }
-        vert = !vert;
+        randPos = between(0, dataGrid.length);
+        for (let i = 0; i < dataGrid[0].length; ++i) {
+            updateDataAtCoord(dataGrid, [randPos, i], CELLS.STREET);
+        }
     }
 
     // Houses
@@ -209,6 +209,9 @@ function refreshView() {
 let dataGrid = [];
 dataGrid = createDataGrid(between(10, 25), between(20, 50));
 
+console.log('Before seedMap, dataGrid.length = ' + dataGrid.length);
+console.log('Before seedMap, dataGrid[0].length = ' + dataGrid[0].length);
+console.log('Here is a random number between 0 and dataGrid[0].length: ' + between(0, dataGrid[0].length));
 seedMap();
 
 let viewGrid = [];
