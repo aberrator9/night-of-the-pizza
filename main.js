@@ -71,39 +71,32 @@ class Entity {
 function seedMap() {
     // const streetDensity = 0.2;
     // const numStreets = Math.floor(Math.min(dataGrid.length, dataGrid[0].length) * streetDensity);
-    const numVertical = 5;
+    const numVertical = 3;
     const numHorizontal = 3;
 
-    // Streets
-    let positions = [];
-    let randPos = -1;
-    let buffered = false;
-
     // Space out vertical streets
-    for (let s = 0; s < numVertical; ++s) {
-        while (randPos === -1 || (!buffered && positions.length < numVertical)) {
-            randPos = between(3, dataGrid[0].length - 3);
-            positions.push(randPos);
+    let positions = [];
+    for (let v = 0; v < numVertical; ++v) {
+        let randPos = -1;
+        let isValid = false;
 
-            if (positions.length <= 1) {
-                if (numVertical === 1) {
-                    buffered = true;
-                }
+        while (randPos === -1 || !isValid) {
+            randPos = between(3, dataGrid[0].length - 3);
+
+            if (positions.length < 1) {
+                positions.push(randPos);
+                isValid = true;
                 continue;
             }
 
-            positions.every(element => {
-                if ((element === randPos) || Math.abs(element - randPos) < 3) {
-                    positions.pop();
-                    buffered = false;
-                    return false;
-                } else {
-                    buffered = true;
-                }
+            isValid = positions.every(element => {
+                return (element === randPos || Math.abs(element - randPos) < 6) ? false : true;
             });
+
+            if (isValid) {
+                positions.push(randPos);
+            }
         }
-        buffered = false;
-        console.log(positions);
     }
 
     // Write to dataGrid
@@ -113,13 +106,44 @@ function seedMap() {
         }
     }
 
+    // Space out horizontal streets
+    positions = [];
+    for (let h = 0; h < numHorizontal; ++h) {
+        let randPos = -1;
+        let isValid = false;
 
-    for (let s = 0; s < numHorizontal; ++s) {
-        randPos = between(3, dataGrid.length - 3);
-        for (let i = 0; i < dataGrid[0].length; ++i) {
-            updateDataAtCoord(dataGrid, [randPos, i], CELLS.STREET);
+        while (randPos === -1 || !isValid) {
+            randPos = between(3, dataGrid.length - 3);
+
+            if (positions.length < 1) {
+                positions.push(randPos);
+                isValid = true;
+                continue;
+            }
+
+            isValid = positions.every(element => {
+                return (element === randPos || Math.abs(element - randPos) < 3) ? false : true;
+            });
+
+            if (isValid) {
+                positions.push(randPos);
+            }
         }
     }
+
+    // Write to dataGrid
+    for (let p = 0; p < positions.length; ++p) {
+        for (let i = 0; i < dataGrid[0].length; ++i) {
+            updateDataAtCoord(dataGrid, [positions[p], i], CELLS.STREET);
+        }
+    }
+
+    // for (let s = 0; s < numHorizontal; ++s) {
+    //     randPos = between(3, dataGrid.length - 3);
+    //     for (let i = 0; i < dataGrid[0].length; ++i) {
+    //         updateDataAtCoord(dataGrid, [randPos, i], CELLS.STREET);
+    //     }
+    // }
 
     // Houses
 
