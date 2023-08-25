@@ -2,6 +2,7 @@ const mapArea = document.querySelector('.map-area');
 const healthDisplay = document.getElementById('health');
 const cashDisplay = document.getElementById('cash');
 const vibesDisplay = document.getElementById('vibes');
+const message = document.querySelector('.message');
 
 const chars = {
     'player': 'P', 'wall': '█', 'street': '▒', 'empty': '░', 'dogSmall': 'd', 'dogBig': 'D',
@@ -11,15 +12,20 @@ const chars = {
 
 // Helpers
 function between(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+    return Math.floor(Math.random() * (max - min)) + min;
 }
 
-function betweenCash(min, max) {
-    return +(Math.random() * (max - min + 1) + min).toFixed(2);
+function betweenFloat(min, max) {
+    return Math.random() * (max - min) + min;
 }
 
 function randomCoords(grid) {
     return [Math.floor(Math.random() * grid.length), Math.floor(Math.random() * grid[0].length)];
+}
+
+class Message {
+    static clear() { message.textContent = ''; }
+    static show(msg) { message.textContent = msg; }
 }
 
 // Grid generation
@@ -59,23 +65,19 @@ class Cash {
         this.x = x;
         this.amt = amt;
     }
-
-    static random() {
-        return between(1, 20) + +(between(0, 100) / 100);
-    }
 }
 
 function seedMap() {
     // Testing
-    for (let c = 0; c < 1; ++c) {
+    for (let c = 0; c < 25; ++c) {
         const randYX = randomCoords(dataGrid);
         updateDataAtCoord(dataGrid, randYX, CELLS.CASH);
     }
-    for (let c = 0; c < 22; ++c) {
+    for (let c = 0; c < 5; ++c) {
         const randYX = randomCoords(dataGrid);
         updateDataAtCoord(dataGrid, randYX, CELLS.HEALTH);
     }
-    for (let c = 0; c < 22; ++c) {
+    for (let c = 0; c < 5; ++c) {
         const randYX = randomCoords(dataGrid);
         updateDataAtCoord(dataGrid, randYX, CELLS.VIBES);
     }
@@ -135,14 +137,18 @@ class Player {
         if (cellVal === CELLS.EMPTY) {
             console.log("EMPTY")
         } else if (cellVal === CELLS.CASH) {
-            console.log("CASH");
-            this.cash += Cash.random();
-
+            const oldPlayerCash = player.cash;
+            const newCash = betweenFloat(1, 20); // Generate a truncated random cash value
+            player.cash += newCash;
+            player.cash = +(player.cash).toFixed(2);
+            Message.show(`Picked up $${+(player.cash - oldPlayerCash).toFixed(2)}`);
             updateDataAtCoord(dataGrid, [this.y, this.x], CELLS.EMPTY);
         } else if (cellVal === CELLS.HEALTH) {
             player.health = Math.min(Math.max(--player.health, 0), 10);
+            Message.show('That hurt.')
         } else if (cellVal === CELLS.VIBES) {
             player.vibes = Math.min(Math.max(--player.vibes, 0), 10);
+            Message.show('You want to go home.')
         }
 
         updateViewGridAtCoord(viewGrid, [this.y, this.x], chars['player']);
@@ -184,5 +190,6 @@ seedMap();
 let viewGrid = [];
 viewGrid = createViewGridFromDataGrid(dataGrid);
 
-const player = new Player(between(1, viewGrid.length - 2), between(1, viewGrid[0].length - 2), 10, 73.57, 10);
+const player = new Player(between(1, viewGrid.length - 2), between(1, viewGrid[0].length - 2), 10, 0, 10);
 refreshView();
+Message.clear();
