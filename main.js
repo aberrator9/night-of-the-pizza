@@ -12,7 +12,7 @@ const chars = {
 
 // Helpers
 function between(min, max) {
-    return Math.floor(Math.random() * (max - min)) + min;
+    return Math.floor(Math.random() * (max - min) + min);
 }
 
 function betweenFloat(min, max) {
@@ -31,10 +31,12 @@ class Message {
 // Grid generation
 const CELLS = {
     EMPTY: 0,
-    WALL: 1,
+    BOUNDARY: 1,
     CASH: 2,
     HEALTH: 3,
-    VIBES: 4
+    VIBES: 4,
+    STREET: 5,
+    HOUSE: 6,
 };
 
 function createDataGrid(rows, cols) {
@@ -45,7 +47,7 @@ function createDataGrid(rows, cols) {
             if (y > 0 && y < rows - 1 && x > 0 && x < cols - 1) {
                 row.push(CELLS.EMPTY);
             } else {
-                row.push(CELLS.WALL);
+                row.push(CELLS.BOUNDARY);
             }
         }
         grid.push(row);
@@ -58,8 +60,7 @@ function updateDataAtCoord(grid, [y, x], newType) {
     grid[y][x] = newType;
 }
 
-// Cash
-class Cash {
+class Entity {
     constructor(y, x, amt) {
         this.y = y;
         this.x = x;
@@ -68,6 +69,27 @@ class Cash {
 }
 
 function seedMap() {
+    const streetDensity = 0.2;
+    const numStreets = Math.floor(Math.min(dataGrid.length, dataGrid[0].length) * streetDensity);
+    console.log("Number of streets: " + numStreets);
+
+    // Streets
+    let vert = true;
+    for (let s = 0; s < numStreets * 2; ++s) {
+        let randPos = vert === true ? between(0, dataGrid.length) : between(0, dataGrid[0].length);
+        for (let i = 0; i < (vert === true ? dataGrid.length : dataGrid[0].length); ++i) {
+            if (vert) {
+                updateDataAtCoord(dataGrid, [i, randPos], CELLS.STREET);
+            } else {
+                updateDataAtCoord(dataGrid, [randPos, i], CELLS.STREET);
+            }
+        }
+        vert = !vert;
+    }
+
+    // Houses
+
+
     // Testing
     for (let c = 0; c < 25; ++c) {
         const randYX = randomCoords(dataGrid);
@@ -91,7 +113,7 @@ function createViewGridFromDataGrid(dataGrid) {
         for (let x = 0; x < dataGrid[y].length; x++) {
             if (dataGrid[y][x] === CELLS.EMPTY) {
                 row.push(chars['empty']);
-            } else if (dataGrid[y][x] === CELLS.WALL) {
+            } else if (dataGrid[y][x] === CELLS.BOUNDARY) {
                 row.push(chars['wall']);
             } else if (dataGrid[y][x] === CELLS.CASH) {
                 row.push(chars['cash']);
@@ -99,6 +121,8 @@ function createViewGridFromDataGrid(dataGrid) {
                 row.push(chars['healthDown']);
             } else if (dataGrid[y][x] === CELLS.VIBES) {
                 row.push(chars['vibesDown']);
+            } else if (dataGrid[y][x] === CELLS.STREET) {
+                row.push(chars['street']);
             }
         }
         grid.push(row);
@@ -125,7 +149,7 @@ class Player {
         }
 
         const cellVal = dataGrid[this.y + y][this.x + x];
-        if (cellVal === CELLS.WALL) {
+        if (cellVal === CELLS.BOUNDARY) {
             return;
         }
 
@@ -168,7 +192,7 @@ addEventListener('keydown', function (event) {
     }
 });
 
-// View
+// View helpers
 function updateViewGridAtCoord(grid, [y, x], newChar) {
     grid[y][x] = newChar;
 }
