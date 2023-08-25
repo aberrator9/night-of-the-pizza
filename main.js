@@ -57,7 +57,6 @@ function createDataGrid(rows, cols) {
 }
 
 function updateDataAtCoord(grid, [y, x], newType) {
-    console.log('updateData y, x ' + y + ' ' + x);
     grid[y][x] = newType;
 }
 
@@ -70,18 +69,53 @@ class Entity {
 }
 
 function seedMap() {
-    const streetDensity = 0.2;
+    // const streetDensity = 0.2;
     // const numStreets = Math.floor(Math.min(dataGrid.length, dataGrid[0].length) * streetDensity);
-    const numStreets = 2;
-    console.log("Number of streets: " + numStreets);
+    const numVertical = 5;
+    const numHorizontal = 3;
 
     // Streets
-    for (let s = 0; s < numStreets; ++s) {
-        let randPos = between(0, dataGrid[0].length);
-        for (let i = 0; i < dataGrid.length; ++i) {
-            updateDataAtCoord(dataGrid, [i, randPos], CELLS.STREET);
+    let positions = [];
+    let randPos = -1;
+    let buffered = false;
+
+    // Space out vertical streets
+    for (let s = 0; s < numVertical; ++s) {
+        while (randPos === -1 || (!buffered && positions.length < numVertical)) {
+            randPos = between(3, dataGrid[0].length - 3);
+            positions.push(randPos);
+
+            if (positions.length <= 1) {
+                if (numVertical === 1) {
+                    buffered = true;
+                }
+                continue;
+            }
+
+            positions.every(element => {
+                if ((element === randPos) || Math.abs(element - randPos) < 3) {
+                    positions.pop();
+                    buffered = false;
+                    return false;
+                } else {
+                    buffered = true;
+                }
+            });
         }
-        randPos = between(0, dataGrid.length);
+        buffered = false;
+        console.log(positions);
+    }
+
+    // Write to dataGrid
+    for (let p = 0; p < positions.length; ++p) {
+        for (let i = 0; i < dataGrid.length; ++i) {
+            updateDataAtCoord(dataGrid, [i, positions[p]], CELLS.STREET);
+        }
+    }
+
+
+    for (let s = 0; s < numHorizontal; ++s) {
+        randPos = between(3, dataGrid.length - 3);
         for (let i = 0; i < dataGrid[0].length; ++i) {
             updateDataAtCoord(dataGrid, [randPos, i], CELLS.STREET);
         }
@@ -165,7 +199,7 @@ class Player {
             const newCash = betweenFloat(1, 20); // Generate a truncated random cash value
             player.cash += newCash;
             player.cash = +(player.cash).toFixed(2);
-            Message.show(`Picked up $${+(player.cash - oldPlayerCash).toFixed(2)}`);
+            Message.show(`Picked up $${(player.cash - oldPlayerCash).toFixed(2)}`);
             updateDataAtCoord(dataGrid, [this.y, this.x], CELLS.EMPTY);
         } else if (cellVal === CELLS.HEALTH) {
             player.health = Math.min(Math.max(--player.health, 0), 10);
@@ -200,18 +234,15 @@ function updateViewGridAtCoord(grid, [y, x], newChar) {
 function refreshView() {
     const mapContent = viewGrid.map(row => row.join('')).join('\n');
     mapArea.textContent = mapContent;
-    cashDisplay.textContent = player.cash > 0 ? player.cash : 'broke';
+    cashDisplay.textContent = player.cash > 0 ? player.cash.toFixed(2) : 'broke';
     healthDisplay.textContent = player.health > 0 ? chars['meter'].repeat(player.health) + chars['meterEmpty'].repeat(10 - player.health) : 'dead';
     vibesDisplay.textContent = player.vibes > 0 ? chars['meter'].repeat(player.vibes) + chars['meterEmpty'].repeat(10 - player.vibes) : 'sad';
 }
 
 // Initialization
 let dataGrid = [];
-dataGrid = createDataGrid(between(10, 25), between(20, 50));
+dataGrid = createDataGrid(between(20, 30), between(50, 80));
 
-console.log('Before seedMap, dataGrid.length = ' + dataGrid.length);
-console.log('Before seedMap, dataGrid[0].length = ' + dataGrid[0].length);
-console.log('Here is a random number between 0 and dataGrid[0].length: ' + between(0, dataGrid[0].length));
 seedMap();
 
 let viewGrid = [];
