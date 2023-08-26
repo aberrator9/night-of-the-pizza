@@ -61,10 +61,6 @@ function createDataGrid(rows, cols) {
     return grid;
 }
 
-function updateDataAtCoord(grid, [y, x], newType) {
-    grid[y][x] = newType;
-}
-
 function generateMap(vert, horz, houses) {
     // const streetDensity = 0.2;
     // const numStreets = Math.floor(Math.min(dataGrid.length, dataGrid[0].length) * streetDensity);
@@ -99,7 +95,7 @@ function generateMap(vert, horz, houses) {
     // Write to dataGrid
     for (let p = 0; p < positions.length; ++p) {
         for (let i = 0; i < tileGrid.length; ++i) {
-            updateDataAtCoord(tileGrid, [i, positions[p]], chars.street);
+            updateGridAtCoord(tileGrid, [i, positions[p]], chars.street);
         }
     }
 
@@ -131,7 +127,7 @@ function generateMap(vert, horz, houses) {
     // Write to dataGrid
     for (let p = 0; p < positions.length; ++p) {
         for (let i = 0; i < tileGrid[0].length; ++i) {
-            updateDataAtCoord(tileGrid, [positions[p], i], chars.street);
+            updateGridAtCoord(tileGrid, [positions[p], i], chars.street);
         }
     }
 
@@ -143,17 +139,17 @@ function seedEntities() {
     for (let c = 0; c < 25; ++c) {
         const randYX = randomCoords(tileGrid);
         // entities.push(new Entity(chars.cash, randYX.y, randYX.x, between(1, 20), tileGrid[randYX.y][randYX.x]));
-        updateViewGridAtCoord(tileGrid, randYX, chars.cash);
+        updateGridAtCoord(tileGrid, randYX, chars.cash);
     }
     for (let c = 0; c < 5; ++c) {
         const randYX = randomCoords(tileGrid);
         // entities.push(new Entity(chars.health, randYX.y, randYX.x, between(1, 20), tileGrid[randYX.y][randYX.x]));
-        updateViewGridAtCoord(tileGrid, randYX, chars.health);
+        updateGridAtCoord(tileGrid, randYX, chars.health);
     }
     for (let c = 0; c < 5; ++c) {
         const randYX = randomCoords(tileGrid);
         // entities.push(new Entity(chars.vibes, randYX.y, randYX.x, between(1, 20), tileGrid[randYX.y][randYX.x]));
-        updateViewGridAtCoord(tileGrid, randYX, chars.vibes);
+        updateGridAtCoord(tileGrid, randYX, chars.vibes);
     }
     console.log("entities -> " + entities);
 }
@@ -187,7 +183,7 @@ class Player {
         this.vibes = vibes;
         this.tile = tileGrid[startY][startX];
 
-        updateViewGridAtCoord(viewGrid, [startY, startX], chars.player);
+        updateGridAtCoord(viewGrid, [startY, startX], chars.player);
     }
 
     move(y, x) {
@@ -201,7 +197,7 @@ class Player {
             return;
         }
 
-        updateViewGridAtCoord(viewGrid, [this.y, this.x], player.tile);
+        updateGridAtCoord(viewGrid, [this.y, this.x], player.tile);
 
         this.y += y;
         this.x += x;
@@ -216,7 +212,6 @@ class Player {
             player.cash += newCash;
             player.cash = +(player.cash).toFixed(2);
             Message.show(`Picked up $${(player.cash - oldPlayerCash).toFixed(2)}` + '.');
-            updateDataAtCoord(tileGrid, [this.y, this.x], player.tile);
         } else if (tileVal === chars.health) {
             player.health = Math.min(Math.max(--player.health, 0), 10);
             Message.show('That hurt.')
@@ -225,7 +220,7 @@ class Player {
             Message.show('You want to go home.')
         }
 
-        updateViewGridAtCoord(viewGrid, [this.y, this.x], chars.player);
+        updateGridAtCoord(viewGrid, [this.y, this.x], chars.player);
         refreshView();
     }
 }
@@ -242,9 +237,9 @@ addEventListener('keydown', function (event) {
     }
 });
 
-// View helpers
-function updateViewGridAtCoord(grid, [y, x], newChar) {
-    grid[y][x] = newChar;
+// Grid helpers
+function updateGridAtCoord(grid, [y, x], newData) {
+    grid[y][x] = newData;
 }
 
 function refreshView() {
