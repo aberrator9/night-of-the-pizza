@@ -2,7 +2,7 @@ const mapArea = document.querySelector('.map-area');
 const healthDisplay = document.getElementById('health');
 const cashDisplay = document.getElementById('cash');
 const vibesDisplay = document.getElementById('vibes');
-const message = document.querySelector('.message');
+const messages = document.querySelectorAll('.message');
 
 const chars = {
     meter: '⯀', 'meterEmpty': '⬚',
@@ -28,9 +28,25 @@ function randomCoords(grid) {
 }
 
 class Message {
-    static clear() { message.textContent = ''; }
-    static show(msg) { message.textContent = msg; }
+    static clear() {
+        messages.forEach(msg => { msg.textContent = '' });
+    }
+
+    static show(msg) {
+        messages[2].textContent = messages[1].textContent;
+        messages[1].textContent = messages[0].textContent;
+        messages[0].textContent = msg;
+    }
 }
+
+function getRandomMsg(array) {
+    return array[Math.floor(Math.random() * array.length)];
+}
+
+const vibesDownMsgs = ['Frick.', 'Not good.', 'You want to go home.', "This isn't your day.", 'Yikes.'];
+const vibesUpMsgs = ['Yippee!', 'Nice.', 'Seems good.', 'You feel a little better.'];
+const healthUpMsgs = ['Healed.', 'You feel healthier.', 'You are invigorated'];
+const healthDownMsgs = ['Ow.', 'Ouch.', 'That hurt.', 'You stubbed your toe.', 'You tripped.', 'Some of your blood fell out.'];
 
 // Grid generation
 function createTileGrid(rows, cols) {
@@ -125,12 +141,12 @@ function generateMap(vert, horz, houses) {
 
 // Entities
 class Entity {
-    constructor(char, y, x, amt, tile) {
+    constructor(char, y, x, amt, msg) {
         this.y = y;
         this.x = x;
         this.amt = amt;
         this.char = char;
-        this.tile = tile;
+        this.msg = msg
     }
 }
 
@@ -140,17 +156,17 @@ function seedEntities() {
     for (let c = 0; c < 2; ++c) {
         const randYX = randomCoords(tileGrid);
         console.log(randYX);
-        entities.push(new Entity(chars.cash, randYX[0], randYX[1], betweenFloat(1, 20), tileGrid[randYX.y, randYX.x]));
+        entities.push(new Entity(chars.cash, randYX[0], randYX[1], betweenFloat(1, 20)));
         // updateGridAtCoord(tileGrid, randYX, chars.cash);
     }
     for (let c = 0; c < 5; ++c) {
         const randYX = randomCoords(tileGrid);
-        entities.push(new Entity(chars.health[1], randYX[0], randYX[1], -1, tileGrid[randYX.y, randYX.x]));
+        entities.push(new Entity(chars.health[1], randYX[0], randYX[1], -1, getRandomMsg(healthDownMsgs)));
         // updateGridAtCoord(tileGrid, randYX, chars.health);
     }
     for (let c = 0; c < 5; ++c) {
         const randYX = randomCoords(tileGrid);
-        entities.push(new Entity(chars.vibes[1], randYX[0], randYX[1], -1, tileGrid[randYX.y, randYX.x]));
+        entities.push(new Entity(chars.vibes[1], randYX[0], randYX[1], -1, getRandomMsg(vibesDownMsgs)));
         // updateGridAtCoord(tileGrid, randYX, chars.vibes);
     }
     console.log("entities -> " + entities);
@@ -226,11 +242,13 @@ class Player {
             } else if (entities[i].char === chars.health[1]) {
                 player.health += entities[i].amt;
                 player.health = Math.min(Math.max(player.health, 0), 10);
-                Message.show('That hurt.')
             } else if (entities[i].char === chars.vibes[1]) {
                 player.vibes += entities[i].amt;
                 player.vibes = Math.min(Math.max(player.vibes, 0), 10);
-                Message.show('You want to go home.')
+            }
+
+            if (entities[i].char != chars.cash) {
+                Message.show(entities[i].msg);
             }
             entities.splice(i, 1, undefined);
         }

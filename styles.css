@@ -49,3 +49,10 @@ body {
     color: rgb(162, 101, 231);
     letter-spacing: 0.1rem;
 }
+
+.amber-low .message:nth-child(3) {
+    opacity: 30%;
+}
+.amber-low .message:nth-child(4) {
+    opacity: 10%;
+}
