@@ -140,7 +140,7 @@ function seedEntities() {
     for (let c = 0; c < 2; ++c) {
         const randYX = randomCoords(tileGrid);
         console.log(randYX);
-        entities.push(new Entity(chars.cash, randYX[0], randYX[1], between(1, 20), tileGrid[randYX.y, randYX.x]));
+        entities.push(new Entity(chars.cash, randYX[0], randYX[1], betweenFloat(1, 20), tileGrid[randYX.y, randYX.x]));
         // updateGridAtCoord(tileGrid, randYX, chars.cash);
     }
     for (let c = 0; c < 5; ++c) {
@@ -212,21 +212,27 @@ class Player {
 
         this.tile = tileGrid[this.y][this.x];
 
-        // run through entity list instead of checking tile value
-        if (tileVal === chars.empty) {
-            console.log("EMPTY")
-        } else if (tileVal === chars.cash) {
-            const oldPlayerCash = player.cash;
-            const newCash = betweenFloat(1, 20); // Generate a truncated random cash value
-            player.cash += newCash;
-            player.cash = +(player.cash).toFixed(2);
-            Message.show(`Picked up $${(player.cash - oldPlayerCash).toFixed(2)}` + '.');
-        } else if (tileVal === chars.health) {
-            player.health = Math.min(Math.max(--player.health, 0), 10);
-            Message.show('That hurt.')
-        } else if (tileVal === chars.vibes) {
-            player.vibes = Math.min(Math.max(--player.vibes, 0), 10);
-            Message.show('You want to go home.')
+        // Check list of entities for any in this space
+        for (let i = 0; i < entities.length; ++i) {
+            if (!entities[i] || entities[i].y != this.y || entities[i].x != this.x) {
+                continue;
+            }
+
+            if (entities[i].char === chars.cash) {
+                const oldPlayerCash = player.cash;
+                player.cash += entities[i].amt;
+                player.cash = +(player.cash).toFixed(2);
+                Message.show(`Picked up $${(player.cash - oldPlayerCash).toFixed(2)}` + '.');
+            } else if (entities[i].char === chars.health[1]) {
+                player.health += entities[i].amt;
+                player.health = Math.min(Math.max(player.health, 0), 10);
+                Message.show('That hurt.')
+            } else if (entities[i].char === chars.vibes[1]) {
+                player.vibes += entities[i].amt;
+                player.vibes = Math.min(Math.max(player.vibes, 0), 10);
+                Message.show('You want to go home.')
+            }
+            entities.splice(i, 1, undefined);
         }
 
         updateGridAtCoord(viewGrid, [this.y, this.x], chars.player);
