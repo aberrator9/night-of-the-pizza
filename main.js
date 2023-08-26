@@ -14,18 +14,6 @@ const chars = {
     dogBig: 'D'
 };
 
-class Entity {
-    constructor(char, y, x, amt, tile) {
-        this.y = y;
-        this.x = x;
-        this.amt = amt;
-        this.char = char;
-        this.tile = tile;
-    }
-}
-
-let entities = [];
-
 // Helpers
 function between(min, max) {
     return Math.max(0, Math.floor(Math.random() * (max - min) + min));
@@ -45,7 +33,7 @@ class Message {
 }
 
 // Grid generation
-function createDataGrid(rows, cols) {
+function createTileGrid(rows, cols) {
     const grid = [];
     for (let y = 0; y < rows; y++) {
         const row = [];
@@ -135,27 +123,41 @@ function generateMap(vert, horz, houses) {
 
 }
 
+// Entities
+class Entity {
+    constructor(char, y, x, amt, tile) {
+        this.y = y;
+        this.x = x;
+        this.amt = amt;
+        this.char = char;
+        this.tile = tile;
+    }
+}
+
+let entities = [];
+
 function seedEntities() {
-    for (let c = 0; c < 25; ++c) {
+    for (let c = 0; c < 2; ++c) {
         const randYX = randomCoords(tileGrid);
-        // entities.push(new Entity(chars.cash, randYX.y, randYX.x, between(1, 20), tileGrid[randYX.y][randYX.x]));
-        updateGridAtCoord(tileGrid, randYX, chars.cash);
+        console.log(randYX);
+        entities.push(new Entity(chars.cash, randYX[0], randYX[1], between(1, 20), tileGrid[randYX.y, randYX.x]));
+        // updateGridAtCoord(tileGrid, randYX, chars.cash);
     }
     for (let c = 0; c < 5; ++c) {
         const randYX = randomCoords(tileGrid);
-        // entities.push(new Entity(chars.health, randYX.y, randYX.x, between(1, 20), tileGrid[randYX.y][randYX.x]));
-        updateGridAtCoord(tileGrid, randYX, chars.health);
+        entities.push(new Entity(chars.health[1], randYX[0], randYX[1], -1, tileGrid[randYX.y, randYX.x]));
+        // updateGridAtCoord(tileGrid, randYX, chars.health);
     }
     for (let c = 0; c < 5; ++c) {
         const randYX = randomCoords(tileGrid);
-        // entities.push(new Entity(chars.vibes, randYX.y, randYX.x, between(1, 20), tileGrid[randYX.y][randYX.x]));
-        updateGridAtCoord(tileGrid, randYX, chars.vibes);
+        entities.push(new Entity(chars.vibes[1], randYX[0], randYX[1], -1, tileGrid[randYX.y, randYX.x]));
+        // updateGridAtCoord(tileGrid, randYX, chars.vibes);
     }
     console.log("entities -> " + entities);
 }
 
 // View generation
-function createViewGridFromDataGrid(dataGrid) {
+function createViewGrid(dataGrid) {
     const grid = [];
     for (let y = 0; y < dataGrid.length; y++) {
         const row = [];
@@ -171,6 +173,12 @@ function createViewGridFromDataGrid(dataGrid) {
         grid.push(row);
     }
     return grid;
+}
+
+function drawEntities() {
+    entities.forEach(element => {
+        updateGridAtCoord(viewGrid, [element.y, element.x], element.char);
+    });
 }
 
 // Player
@@ -204,6 +212,7 @@ class Player {
 
         this.tile = tileGrid[this.y][this.x];
 
+        // run through entity list instead of checking tile value
         if (tileVal === chars.empty) {
             console.log("EMPTY")
         } else if (tileVal === chars.cash) {
@@ -221,7 +230,7 @@ class Player {
         }
 
         updateGridAtCoord(viewGrid, [this.y, this.x], chars.player);
-        refreshView();
+        refreshViewAndHud();
     }
 }
 
@@ -242,7 +251,7 @@ function updateGridAtCoord(grid, [y, x], newData) {
     grid[y][x] = newData;
 }
 
-function refreshView() {
+function refreshViewAndHud() {
     const mapContent = viewGrid.map(row => row.join('')).join('\n');
     mapArea.textContent = mapContent;
     cashDisplay.textContent = player.cash > 0 ? player.cash.toFixed(2) : 'broke';
@@ -252,16 +261,18 @@ function refreshView() {
 
 // Initialization
 let tileGrid = [];
-tileGrid = createDataGrid(between(20, 30), between(50, 80));
+tileGrid = createTileGrid(between(20, 30), between(50, 80));
 
 generateMap(3, 3, 10);
 seedEntities();
 
 let viewGrid = [];
-viewGrid = createViewGridFromDataGrid(tileGrid);
+viewGrid = createViewGrid(tileGrid);
+
+drawEntities();
 
 const playerY = between(1, viewGrid.length - 2);
 playerX = between(1, viewGrid[0].length - 2);
 const player = new Player(playerY, playerX, 10, 0, 10, tileGrid[playerY][playerX]);
-refreshView();
+refreshViewAndHud();
 Message.clear();
