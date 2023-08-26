@@ -4,11 +4,25 @@ const cashDisplay = document.getElementById('cash');
 const vibesDisplay = document.getElementById('vibes');
 const message = document.querySelector('.message');
 
-const chars = {
-    'player': 'P', 'wall': '█', 'street': '▒', 'empty': '░', 'dogSmall': 'd', 'dogBig': 'D',
-    'house': 'H', 'cash': '$', 'vibesUp': '^', 'vibesDown': 'v', 'healthUp': '+', 'healthDown': 'x',
-    'meter': '⯀', 'meterEmpty': '⬚'
+const cells = {
+    meter: '⯀', 'meterEmpty': '⬚',
+    health: ['+', 'x'], cash: '$', vibes: ['^', 'v'],
+    empty: '░', boundary: '█', street: '▒',
+    house: 'H',
+    player: 'P',
+    dogSmall: 'd',
+    dogBig: 'D'
 };
+
+class Entity {
+    constructor(cell, y, x, amt, tile) {
+        this.y = y;
+        this.x = x;
+        this.amt = amt;
+        this.cell = cell;
+        this.tile = tile;
+    }
+}
 
 // Helpers
 function between(min, max) {
@@ -29,43 +43,24 @@ class Message {
 }
 
 // Grid generation
-const CELLS = {
-    EMPTY: 0,
-    BOUNDARY: 1,
-    CASH: 2,
-    HEALTH: 3,
-    VIBES: 4,
-    STREET: 5,
-    HOUSE: 6,
-};
-
 function createDataGrid(rows, cols) {
     const grid = [];
     for (let y = 0; y < rows; y++) {
         const row = [];
         for (let x = 0; x < cols; x++) {
             if (y > 0 && y < rows - 1 && x > 0 && x < cols - 1) {
-                row.push(CELLS.EMPTY);
+                row.push(cells.empty);
             } else {
-                row.push(CELLS.BOUNDARY);
+                row.push(cells.boundary);
             }
         }
         grid.push(row);
     }
-    console.log(grid);
     return grid;
 }
 
 function updateDataAtCoord(grid, [y, x], newType) {
     grid[y][x] = newType;
-}
-
-class Entity {
-    constructor(y, x, amt) {
-        this.y = y;
-        this.x = x;
-        this.amt = amt;
-    }
 }
 
 function seedMap() {
@@ -102,7 +97,7 @@ function seedMap() {
     // Write to dataGrid
     for (let p = 0; p < positions.length; ++p) {
         for (let i = 0; i < dataGrid.length; ++i) {
-            updateDataAtCoord(dataGrid, [i, positions[p]], CELLS.STREET);
+            updateDataAtCoord(dataGrid, [i, positions[p]], cells.street);
         }
     }
 
@@ -134,7 +129,7 @@ function seedMap() {
     // Write to dataGrid
     for (let p = 0; p < positions.length; ++p) {
         for (let i = 0; i < dataGrid[0].length; ++i) {
-            updateDataAtCoord(dataGrid, [positions[p], i], CELLS.STREET);
+            updateDataAtCoord(dataGrid, [positions[p], i], cells.street);
         }
     }
 
@@ -151,15 +146,15 @@ function seedMap() {
     // Testing
     for (let c = 0; c < 25; ++c) {
         const randYX = randomCoords(dataGrid);
-        updateDataAtCoord(dataGrid, randYX, CELLS.CASH);
+        updateDataAtCoord(dataGrid, randYX, cells.cash);
     }
     for (let c = 0; c < 5; ++c) {
         const randYX = randomCoords(dataGrid);
-        updateDataAtCoord(dataGrid, randYX, CELLS.HEALTH);
+        updateDataAtCoord(dataGrid, randYX, cells.health);
     }
     for (let c = 0; c < 5; ++c) {
         const randYX = randomCoords(dataGrid);
-        updateDataAtCoord(dataGrid, randYX, CELLS.VIBES);
+        updateDataAtCoord(dataGrid, randYX, cells.vibes);
     }
 }
 
@@ -169,18 +164,12 @@ function createViewGridFromDataGrid(dataGrid) {
     for (let y = 0; y < dataGrid.length; y++) {
         const row = [];
         for (let x = 0; x < dataGrid[y].length; x++) {
-            if (dataGrid[y][x] === CELLS.EMPTY) {
-                row.push(chars['empty']);
-            } else if (dataGrid[y][x] === CELLS.BOUNDARY) {
-                row.push(chars['wall']);
-            } else if (dataGrid[y][x] === CELLS.CASH) {
-                row.push(chars['cash']);
-            } else if (dataGrid[y][x] === CELLS.HEALTH) {
-                row.push(chars['healthDown']);
-            } else if (dataGrid[y][x] === CELLS.VIBES) {
-                row.push(chars['vibesDown']);
-            } else if (dataGrid[y][x] === CELLS.STREET) {
-                row.push(chars['street']);
+            if (dataGrid[y][x] === cells.vibes) {
+                row.push(dataGrid[y][x][1]);
+            } else if (dataGrid[y][x] === cells.health) {
+                row.push(dataGrid[y][x][1]);
+            } else {
+                row.push(dataGrid[y][x]);
             }
         }
         grid.push(row);
@@ -190,14 +179,15 @@ function createViewGridFromDataGrid(dataGrid) {
 
 // Player
 class Player {
-    constructor(startY, startX, health, cash, vibes) {
+    constructor(startY, startX, health, cash, vibes, cell) {
         this.x = startX;
         this.y = startY;
         this.health = health;
         this.cash = cash;
         this.vibes = vibes;
+        this.cell = dataGrid[startY, startX];
 
-        updateViewGridAtCoord(viewGrid, [startY, startX], chars['player']);
+        updateViewGridAtCoord(viewGrid, [startY, startX], cells.player);
     }
 
     move(y, x) {
@@ -207,33 +197,35 @@ class Player {
         }
 
         const cellVal = dataGrid[this.y + y][this.x + x];
-        if (cellVal === CELLS.BOUNDARY) {
+        if (cellVal === cells.boundary) {
             return;
         }
 
-        updateViewGridAtCoord(viewGrid, [this.y, this.x], chars['empty']);
+        updateViewGridAtCoord(viewGrid, [this.y, this.x], cells.empty);
 
         this.y += y;
         this.x += x;
 
-        if (cellVal === CELLS.EMPTY) {
+        this.cell = dataGrid[this.y, this.x];
+
+        if (cellVal === cells.empty) {
             console.log("EMPTY")
-        } else if (cellVal === CELLS.CASH) {
+        } else if (cellVal === cells.cash) {
             const oldPlayerCash = player.cash;
             const newCash = betweenFloat(1, 20); // Generate a truncated random cash value
             player.cash += newCash;
             player.cash = +(player.cash).toFixed(2);
-            Message.show(`Picked up $${(player.cash - oldPlayerCash).toFixed(2)}`);
-            updateDataAtCoord(dataGrid, [this.y, this.x], CELLS.EMPTY);
-        } else if (cellVal === CELLS.HEALTH) {
+            Message.show(`Picked up $${(player.cash - oldPlayerCash).toFixed(2)}` + '.');
+            updateDataAtCoord(dataGrid, [this.y, this.x], player.cell);
+        } else if (cellVal === cells.health) {
             player.health = Math.min(Math.max(--player.health, 0), 10);
             Message.show('That hurt.')
-        } else if (cellVal === CELLS.VIBES) {
+        } else if (cellVal === cells.vibes) {
             player.vibes = Math.min(Math.max(--player.vibes, 0), 10);
             Message.show('You want to go home.')
         }
 
-        updateViewGridAtCoord(viewGrid, [this.y, this.x], chars['player']);
+        updateViewGridAtCoord(viewGrid, [this.y, this.x], cells.player);
         refreshView();
     }
 }
@@ -259,8 +251,8 @@ function refreshView() {
     const mapContent = viewGrid.map(row => row.join('')).join('\n');
     mapArea.textContent = mapContent;
     cashDisplay.textContent = player.cash > 0 ? player.cash.toFixed(2) : 'broke';
-    healthDisplay.textContent = player.health > 0 ? chars['meter'].repeat(player.health) + chars['meterEmpty'].repeat(10 - player.health) : 'dead';
-    vibesDisplay.textContent = player.vibes > 0 ? chars['meter'].repeat(player.vibes) + chars['meterEmpty'].repeat(10 - player.vibes) : 'sad';
+    healthDisplay.textContent = player.health > 0 ? cells.meter.repeat(player.health) + cells.meterEmpty.repeat(10 - player.health) : 'dead';
+    vibesDisplay.textContent = player.vibes > 0 ? cells.meter.repeat(player.vibes) + cells.meterEmpty.repeat(10 - player.vibes) : 'sad';
 }
 
 // Initialization
@@ -272,6 +264,8 @@ seedMap();
 let viewGrid = [];
 viewGrid = createViewGridFromDataGrid(dataGrid);
 
-const player = new Player(between(1, viewGrid.length - 2), between(1, viewGrid[0].length - 2), 10, 0, 10);
+const playerY = between(1, viewGrid.length - 2);
+playerX = between(1, viewGrid[0].length - 2);
+const player = new Player(playerY, playerX, 10, 0, 10, dataGrid[playerY][playerX]);
 refreshView();
 Message.clear();
