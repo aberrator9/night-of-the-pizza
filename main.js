@@ -16,7 +16,7 @@ const chars = {
 
 // Helpers
 function between(min, max) {
-    return Math.max(0, Math.floor(Math.random() * (max - min) + min));
+    return Math.floor(Math.random() * (max - min) + min);
 }
 
 function betweenFloat(min, max) {
@@ -43,10 +43,17 @@ function getRandomMsg(array) {
     return array[Math.floor(Math.random() * array.length)];
 }
 
-const vibesDownMsgs = ['Frick.', 'Not good.', 'You want to go home.', "This isn't your day.", 'Yikes.'];
+let fingerCount = 10;
+const vibesDownMsgs = ['Frick.', 'Not good.', 'You want to go home.', "This isn't your day.", 'Yikes.', 'You think about giving up.'];
 const vibesUpMsgs = ['Yippee!', 'Nice.', 'Seems good.', 'You feel a little better.'];
 const healthUpMsgs = ['Healed.', 'You feel healthier.', 'You are invigorated'];
-const healthDownMsgs = ['Ow.', 'Ouch.', 'That hurt.', 'You stubbed your toe.', 'You tripped.', 'Some of your blood fell out.'];
+const healthDownMsgs = ['Ow.', 'Ouch.', 'That hurt.', 'You stubbed your toe.', 'You tripped.', 'Some of your blood fell out.', 'Acquired [New Hole].'];
+const randomMsgs = [
+    'You remembered your high school math teacher.',
+    'Peepers sing in the bushes. They grow quiet as you near.',
+    'Distant giggling.',
+    'Someone laid on the horn.'
+];
 
 // Grid generation
 function createTileGrid(rows, cols) {
@@ -96,7 +103,6 @@ function generateMap(vert, horz, houses) {
         }
     }
 
-    // Write to dataGrid
     for (let p = 0; p < positions.length; ++p) {
         for (let i = 0; i < tileGrid.length; ++i) {
             updateGridAtCoord(tileGrid, [i, positions[p]], chars.street);
@@ -128,7 +134,6 @@ function generateMap(vert, horz, houses) {
         }
     }
 
-    // Write to dataGrid
     for (let p = 0; p < positions.length; ++p) {
         for (let i = 0; i < tileGrid[0].length; ++i) {
             updateGridAtCoord(tileGrid, [positions[p], i], chars.street);
@@ -173,17 +178,17 @@ function seedEntities() {
 }
 
 // View generation
-function createViewGrid(dataGrid) {
+function createViewGrid(tileGrid) {
     const grid = [];
-    for (let y = 0; y < dataGrid.length; y++) {
+    for (let y = 0; y < tileGrid.length; y++) {
         const row = [];
-        for (let x = 0; x < dataGrid[y].length; x++) {
-            if (dataGrid[y][x] === chars.vibes) {
-                row.push(dataGrid[y][x][1]);
-            } else if (dataGrid[y][x] === chars.health) {
-                row.push(dataGrid[y][x][1]);
+        for (let x = 0; x < tileGrid[y].length; x++) {
+            if (tileGrid[y][x] === chars.vibes) {
+                row.push(tileGrid[y][x][1]);
+            } else if (tileGrid[y][x] === chars.health) {
+                row.push(tileGrid[y][x][1]);
             } else {
-                row.push(dataGrid[y][x]);
+                row.push(tileGrid[y][x]);
             }
         }
         grid.push(row);
@@ -248,7 +253,13 @@ class Player {
             }
 
             if (entities[i].char != chars.cash) {
-                Message.show(entities[i].msg);
+                // Chance to show finger message
+                if (entities[i].char = chars.health[1] && between(0, 5) > 3) {
+                    Message.show(`Finger count: ${--fingerCount}`);
+                }
+                else {
+                    Message.show(entities[i].msg);
+                }
             }
             entities.splice(i, 1, undefined);
         }
