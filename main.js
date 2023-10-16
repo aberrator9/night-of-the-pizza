@@ -5,9 +5,10 @@ const vibesDisplay = document.getElementById('vibes');
 const messages = document.querySelectorAll('.message');
 
 const chars = {
-    meter: '⯀', 'meterEmpty': '⬚',
+    meter: '⯀', meterEmpty: '⬚',
     health: ['+', 'x'], cash: '$', vibes: ['^', 'v'],
-    empty: '░', boundary: '█', street: '▒',
+    empty: '\u00A0', // Non-breaking space (unicode)
+    boundary: '█', street: '░',
     house: 'H',
     player: 'P',
     dogSmall: 'd',
@@ -72,7 +73,7 @@ function createTileGrid(rows, cols) {
     return grid;
 }
 
-function generateMap(vert, horz, houses) {
+function drawEnvironment(vert, horz, houses) {
     // const streetDensity = 0.2;
     // const numStreets = Math.floor(Math.min(dataGrid.length, dataGrid[0].length) * streetDensity);
     const numVertical = vert;
@@ -298,7 +299,7 @@ function refreshViewAndHud() {
 let tileGrid = [];
 tileGrid = createTileGrid(between(20, 30), between(50, 80));
 
-generateMap(3, 3, 10);
+drawEnvironment(3, 3, 10);
 seedEntities();
 
 let viewGrid = [];
