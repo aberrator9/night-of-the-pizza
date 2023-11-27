@@ -24,8 +24,16 @@ function betweenFloat(min, max) {
     return Math.random() * (max - min) + min;
 }
 
-function randomCoords(grid) {
-    return [Math.floor(Math.random() * grid.length), Math.floor(Math.random() * grid[0].length)];
+function randomCoordsInBounds(grid) {
+    return [between(1, grid.length - 1), between(1, grid[0].length - 1)];
+}
+
+function randomElement(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function outOfBounds(y, x) {
+    return y < 1 || y > tileGrid.length - 1 || x < 1 || x > tileGrid[0].length;
 }
 
 class Message {
@@ -73,19 +81,14 @@ function createTileGrid(rows, cols) {
     return grid;
 }
 
-function drawEnvironment(vert, horz, houses) {
-    // const streetDensity = 0.2;
-    // const numStreets = Math.floor(Math.min(dataGrid.length, dataGrid[0].length) * streetDensity);
-    const numVertical = vert;
-    const numHorizontal = horz;
-
+function drawEnvironment(numVertical, numHorizontal, numHouses) {
     // Vertical streets
     let positions = [];
     for (let v = 0; v < numVertical; ++v) {
         let randPos = -1;
         let isValid = false;
 
-        while (randPos === -1 || !isValid) {
+        while (!isValid) {
             randPos = between(3, tileGrid[0].length - 3);
 
             if (positions.length < 1) {
@@ -116,7 +119,7 @@ function drawEnvironment(vert, horz, houses) {
         let randPos = -1;
         let isValid = false;
 
-        while (randPos === -1 || !isValid) {
+        while (!isValid) {
             randPos = between(3, tileGrid.length - 3);
 
             if (positions.length < 1) {
@@ -141,8 +144,45 @@ function drawEnvironment(vert, horz, houses) {
         }
     }
 
-    // Houses
+    // Houses (currently only spawn on horizontal streets)
+    let spawnedHouses = 0;
+    const forbiddenSpaces = [chars.house, chars.street];
+    outerWhile : while (spawnedHouses < numHouses) {
+        let valid = false;
+        while (!valid) {
+            const houseHeight = between(3, 7);
+            const houseWidth = between(4, 13);
 
+            const randStreetSpot = [randomElement(positions), between(1, tileGrid[0].length - 1)];
+            updateGridAtCoord(tileGrid, randStreetSpot, 'o');
+
+            [t, r, b, l] =
+                [randStreetSpot[0] + 1 + houseHeight,
+                randStreetSpot[1] + (Math.floor(houseWidth / 2)),
+                randStreetSpot[0] + 1,
+                randStreetSpot[1] - (Math.floor(houseWidth / 2))];
+
+            // Validate positions
+            for (let y = b; y < t; ++y) {
+                for (let x = l; x < r; ++x) {
+                    if (forbiddenSpaces.includes(tileGrid[y][x]) || outOfBounds(y, x)) {
+                        console.log('forbidden space', tileGrid[y][x], 'at', [y, x]);
+                        continue outerWhile;
+                    }
+                }
+            }
+
+            valid = true;
+            spawnedHouses++;
+        }
+        
+        // Draw house
+        for (let y = b; y < t; ++y) {
+            for (let x = l; x < r; ++x) {
+                updateGridAtCoord(tileGrid, [y, x], chars.house);
+            }
+        }
+    }
 }
 
 // Entities
@@ -160,22 +200,20 @@ let entities = [];
 
 function seedEntities() {
     for (let c = 0; c < 2; ++c) {
-        const randYX = randomCoords(tileGrid);
-        console.log(randYX);
+        const randYX = randomCoordsInBounds(tileGrid);
         entities.push(new Entity(chars.cash, randYX[0], randYX[1], betweenFloat(1, 20)));
         // updateGridAtCoord(tileGrid, randYX, chars.cash);
     }
     for (let c = 0; c < 5; ++c) {
-        const randYX = randomCoords(tileGrid);
+        const randYX = randomCoordsInBounds(tileGrid);
         entities.push(new Entity(chars.health[1], randYX[0], randYX[1], -1, getRandomMsg(healthDownMsgs)));
         // updateGridAtCoord(tileGrid, randYX, chars.health);
     }
     for (let c = 0; c < 5; ++c) {
-        const randYX = randomCoords(tileGrid);
+        const randYX = randomCoordsInBounds(tileGrid);
         entities.push(new Entity(chars.vibes[1], randYX[0], randYX[1], -1, getRandomMsg(vibesDownMsgs)));
         // updateGridAtCoord(tileGrid, randYX, chars.vibes);
     }
-    console.log("entities -> " + entities);
 }
 
 // View generation
@@ -299,11 +337,10 @@ function refreshViewAndHud() {
 let tileGrid = [];
 tileGrid = createTileGrid(between(20, 30), between(50, 80));
 
-drawEnvironment(3, 3, 10);
+drawEnvironment(3, 3, 3);
 seedEntities();
 
-let viewGrid = [];
-viewGrid = createViewGrid(tileGrid);
+let viewGrid = createViewGrid(tileGrid);
 
 drawEntities();
 
