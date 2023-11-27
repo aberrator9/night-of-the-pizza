@@ -9,10 +9,14 @@ const chars = {
     health: ['+', 'x'], cash: '$', vibes: ['^', 'v'],
     empty: '\u00A0', // Non-breaking space (unicode)
     boundary: '█', street: '░',
-    house: 'H',
     player: 'P',
     dogSmall: 'd',
-    dogBig: 'D'
+    dogBig: 'D',
+    fence: '\u0428',
+    leaningPole: '\u0482',
+    arrows: { down: '▼', up: '▲' },
+    walls: { TL: '╔', BL: '╚', TR: '╗', BR: '╝', H: '═', V: '║' },
+    dithers: { 1: '░', 2: '▒', 3: '▓' },
 };
 
 // Helpers
@@ -33,7 +37,7 @@ function randomElement(arr) {
 }
 
 function outOfBounds(y, x) {
-    return y < 1 || y > tileGrid.length - 1 || x < 1 || x > tileGrid[0].length;
+    return y <= 0 || y >= tileGrid.length - 1 || x <= 0 || x >= tileGrid[0].length - 1;
 }
 
 class Message {
@@ -146,26 +150,25 @@ function drawEnvironment(numVertical, numHorizontal, numHouses) {
 
     // Houses (currently only spawn on horizontal streets)
     let spawnedHouses = 0;
-    const forbiddenSpaces = [chars.house, chars.street];
     outerWhile : while (spawnedHouses < numHouses) {
         let valid = false;
         while (!valid) {
-            const houseHeight = between(3, 7);
-            const houseWidth = between(4, 13);
+            const houseHeight = between(4, 7);
+            const houseWidth = between(6, 13);
 
             const randStreetSpot = [randomElement(positions), between(1, tileGrid[0].length - 1)];
-            updateGridAtCoord(tileGrid, randStreetSpot, 'o');
-
+            
             [t, r, b, l] =
-                [randStreetSpot[0] + 1 + houseHeight,
-                randStreetSpot[1] + (Math.floor(houseWidth / 2)),
-                randStreetSpot[0] + 1,
-                randStreetSpot[1] - (Math.floor(houseWidth / 2))];
-
+            [randStreetSpot[0] + 1 + houseHeight,
+            randStreetSpot[1] + (Math.floor(houseWidth / 2)),
+            randStreetSpot[0] + 1,
+            randStreetSpot[1] - (Math.floor(houseWidth / 2))];
+            
             // Validate positions
+            // TODO: short circuit by moving boundaries as obstacles are encountered
             for (let y = b; y < t; ++y) {
                 for (let x = l; x < r; ++x) {
-                    if (forbiddenSpaces.includes(tileGrid[y][x]) || outOfBounds(y, x)) {
+                    if (Object.values(chars.walls).includes(tileGrid[y][x]) || tileGrid[y][x] === chars.street || outOfBounds(y, x)) {
                         console.log('forbidden space', tileGrid[y][x], 'at', [y, x]);
                         continue outerWhile;
                     }
@@ -174,14 +177,23 @@ function drawEnvironment(numVertical, numHorizontal, numHouses) {
 
             valid = true;
             spawnedHouses++;
+            updateGridAtCoord(tileGrid, randStreetSpot, chars.arrows.down);
         }
         
         // Draw house
-        for (let y = b; y < t; ++y) {
-            for (let x = l; x < r; ++x) {
-                updateGridAtCoord(tileGrid, [y, x], chars.house);
-            }
-        }
+        updateGridAtCoord(tileGrid, [t - 1, l], chars.walls.BL);
+        updateGridAtCoord(tileGrid, [t - 1, r - 1], chars.walls.BR);
+        updateGridAtCoord(tileGrid, [b, r - 1], chars.walls.TR);
+        updateGridAtCoord(tileGrid, [b, l], chars.walls.TL);
+
+                for (let x = l + 1; x < r - 1; ++x) {
+                    updateGridAtCoord(tileGrid, [t - 1, x], chars.walls.H);
+                    updateGridAtCoord(tileGrid, [b, x], chars.walls.H);
+                }
+                for (let y = b + 1; y < t - 1; ++y) {
+                    updateGridAtCoord(tileGrid, [y, l], chars.walls.V);
+                    updateGridAtCoord(tileGrid, [y, r - 1], chars.walls.V);
+                }
     }
 }
 
@@ -261,7 +273,7 @@ class Player {
         }
 
         const tileVal = tileGrid[this.y + y][this.x + x];
-        if (tileVal === chars.boundary) {
+        if (tileVal === chars.boundary || Object.values(chars.walls).includes(tileVal)) {
             return;
         }
 
@@ -335,7 +347,7 @@ function refreshViewAndHud() {
 
 // Initialization
 let tileGrid = [];
-tileGrid = createTileGrid(between(20, 30), between(50, 80));
+tileGrid = createTileGrid(between(20, 30), between(65, 80));
 
 drawEnvironment(3, 3, 3);
 seedEntities();
